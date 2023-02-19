@@ -239,7 +239,7 @@ export default (io: Server) => {
         });
         roomsToHide = roomsToHide.filter((room) => room !== gameData.roomId);
         io.sockets.emit(Events.UPDATE_ROOMS, getRoomsArray(roomsDetailsMap));
-      }, SECONDS_FOR_GAME * 100);
+      }, SECONDS_FOR_GAME * 1000);
     });
 
     socket.on(Events.SET_TEXT_COMPLETED, (setTextData) => {
