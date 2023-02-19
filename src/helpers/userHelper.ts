@@ -4,7 +4,7 @@ const clearUsersTextField = ({ roomData }): void => {
   }
 };
 
-const setUsersUnredy = ({ roomData }): void => {
+const setUsersUnready = ({ roomData }): void => {
   for (const player of roomData) {
     player.ready = false;
   }
@@ -40,10 +40,17 @@ const updateTextFieldState = ({ roomData, char, username }) => {
   }
 };
 
+const setUsersUndone = ({roomData}) => {
+  for(const player of roomData) {
+    player.done = false;
+  }
+}
+
 export {
   clearUsersTextField,
-  setUsersUnredy,
+  setUsersUnready,
   setUserDone,
   toggleUserReady,
   updateTextFieldState,
+  setUsersUndone
 };

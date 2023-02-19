@@ -11,11 +11,12 @@ import {
 import { getRoomsKeysArray } from "../utils/room";
 import { createNewUserInMap, removeUserInMap } from "../helpers/mapHelper";
 import {
-  setUsersUnredy,
+  setUsersUnready,
   clearUsersTextField,
   setUserDone,
   toggleUserReady,
   updateTextFieldState,
+  setUsersUndone
 } from "../helpers/userHelper";
 
 const roomsDetailsMap = new Map();
@@ -226,8 +227,10 @@ export default (io: Server) => {
         const roomData = roomsDetailsMap.get(gameData.roomId);
 
         if (roomData) {
-          setUsersUnredy({ roomData });
+          setUsersUnready({ roomData });
         }
+
+        setUsersUndone({roomData})
 
         io.to(gameData.roomId).emit(Events.END_GAME, { roomData });
 
@@ -236,7 +239,7 @@ export default (io: Server) => {
         });
         roomsToHide = roomsToHide.filter((room) => room !== gameData.roomId);
         io.sockets.emit(Events.UPDATE_ROOMS, getRoomsArray(roomsDetailsMap));
-      }, SECONDS_FOR_GAME * 1000);
+      }, SECONDS_FOR_GAME * 100);
     });
 
     socket.on(Events.SET_TEXT_COMPLETED, (setTextData) => {
@@ -256,26 +259,28 @@ export default (io: Server) => {
       }
 
       clearUsersTextField({ roomData });
-
-      clearInterval(gameSessionTimer);
-
-      // clearTimeout(gameSessionTimeout);
-
-      io.to(setTextData.roomId).emit('SET_CLEAR_TIMEOUT');
-
-      setUsersUnredy({ roomData });
-
+      
+      setUsersUnready({ roomData });
+      
       io.to(setTextData.roomId).emit(Events.SET_CLIENT_UNREADY, {
         ready: false,
       });
-
+      
       io.to(setTextData.roomId).emit(Events.END_GAME, { roomData });
       roomsToHide = roomsToHide.filter((room) => room !== setTextData.roomId);
       io.sockets.emit(Events.UPDATE_ROOMS, getRoomsArray(roomsDetailsMap));
       io.to(setTextData.roomId).emit(Events.SEND_RESULTS, {
         winners: winners.slice(0, 2),
       });
+      setUsersUndone({roomData})
+      io.to(setTextData.roomId).emit(Events.SET_CLEAR_TIMEOUT);
     });
+
+    socket.on(Events.CLEAR_TIMEOUT, () => {
+      clearInterval(gameSessionTimer);
+
+      clearTimeout(gameSessionTimeout);
+    })
 
     socket.on(Events.TEXT_UPDATE, (textUpdateData) => {
       const roomData = roomsDetailsMap.get(textUpdateData.roomId);

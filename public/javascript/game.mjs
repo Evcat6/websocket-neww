@@ -104,6 +104,8 @@ socket.on(Events.END_GAME, endGameEventListener);
 
 socket.on(Events.TEXT_UPDATED_CLIENT, textUpdatedClientEventListener);
 
+socket.on(Events.SET_CLEAR_TIMEOUT, clearTimeout)
+
 // DOM elements Event listeners functions
 
 function joinRoomDone(roomId) {
@@ -141,6 +143,10 @@ function onChange(text) {
 }
 
 // Socket Event listeners functions
+
+function clearTimeout() {
+  socket.emit(Events.CLEAR_TIMEOUT);
+}
 
 function updateUserReadyDone(user) {
   changeReadyStatus(user);
