@@ -11,7 +11,6 @@ const createNewUserInMap = ({ roomId, username, roomData }) => {
 };
 
 const removeUserInMap = ({ username, roomData }) => {
-  console.log(roomData);
   if (!roomData) return;
   const newRoom = roomData.filter((player) => player.name !== username);
 

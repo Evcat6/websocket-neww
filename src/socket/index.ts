@@ -45,7 +45,7 @@ const getRoomsArray = (map: Map<string, Players>) => {
 export default (io: Server) => {
   io.on("connection", (socket) => {
     let gameSessionTimer: NodeJS.Timeout;
-    let gameSessionTimeout: NodeJS.Timeout;
+    let gameSessionTimeout;
     let currentRoom = null;
     const username = socket.handshake.query.username as string;
 
@@ -147,7 +147,6 @@ export default (io: Server) => {
       );
 
       for (const player of roomData) {
-        console.log(player);
         if (!player.ready) return;
       }
 
@@ -260,7 +259,9 @@ export default (io: Server) => {
 
       clearInterval(gameSessionTimer);
 
-      clearTimeout(gameSessionTimeout);
+      // clearTimeout(gameSessionTimeout);
+
+      io.to(setTextData.roomId).emit('SET_CLEAR_TIMEOUT');
 
       setUsersUnredy({ roomData });
 

@@ -32,7 +32,6 @@ const toggleUserReady = ({ roomData, username }): boolean => {
 };
 
 const updateTextFieldState = ({ roomData, char, username }) => {
-  console.log(roomData);
   if (!roomData) return;
   for (const player of roomData) {
     if (player.name === username) {
