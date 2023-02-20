@@ -47,7 +47,7 @@ export default (io: Server) => {
   io.on("connection", (socket) => {
     let gameSessionTimer: NodeJS.Timeout;
     let gameSessionTimeout;
-    let currentRoom = null;
+    let currentRoom: null | string = null;
     const username = socket.handshake.query.username as string;
 
     for (let [user] of usersConnectedToServer) {
@@ -147,7 +147,7 @@ export default (io: Server) => {
         newRoomData.players
       );
 
-      for (const player of roomData) {
+      for (const player of newRoom) {
         if (!player.ready) return;
       }
 
@@ -298,15 +298,52 @@ export default (io: Server) => {
         }
       }
 
-      if (!currentRoom) return;
-      const roomData = roomsDetailsMap.get(currentRoom);
+      let socketetRoom = currentRoom;
 
-      const newRoom = removeUserInMap(roomData);
-      roomsDetailsMap.set(currentRoom, newRoom);
+      const roomData = roomsDetailsMap.get(socketetRoom);
+
+      const newRoom = removeUserInMap({
+        username,
+        roomData,
+      });
+
+      roomsDetailsMap.set(socketetRoom, newRoom);
+      socket.leave((socketetRoom as string));
+      currentRoom = null;
+      const newRoomData = {
+        name: socketetRoom,
+        players: newRoom,
+      };
+
+      io.to((socketetRoom as string)).emit(
+        Events.UPDATE_USERS_IN_ROOM,
+        newRoomData.players
+      );
+
+      for (const player of newRoom) {
+        if (!player.ready) return;
+      }
+
+      roomsToHide.push((socketetRoom as string));
 
       io.sockets.emit(Events.UPDATE_ROOMS, getRoomsArray(roomsDetailsMap));
-      io.to(currentRoom).emit(Events.UPDATE_USERS_IN_ROOM, currentRoom);
-      currentRoom = null;
-    });
+
+      io.sockets.emit(Events.UPDATE_ROOM_PLAYERS_COUNT, newRoomData);
+
+      let timerCount = SECONDS_TIMER_BEFORE_START_GAME;
+
+      let beforeGameTimer = setInterval(() => {
+        timerCount = timerCount - 1;
+        io.to((socketetRoom as string)).emit(
+          Events.UPDATE_BEFORE_GAME_TIMER,
+          timerCount
+        );
+      }, 1000);
+      setTimeout(() => {
+        clearInterval(beforeGameTimer);
+        const randomText = Math.floor(Math.random() * 7);
+        io.to((socketetRoom as string)).emit(Events.START_GAME, { randomText });
+      }, SECONDS_TIMER_BEFORE_START_GAME * 1000);
+
   });
-};
+});}
